@@ -2,5 +2,6 @@ using Genser
 using Test
 
 @testset "Genser.jl" begin
-    # Write your tests here.
+    include("datamodel_tests.jl")
+    include("derivetype_tests.jl")
 end

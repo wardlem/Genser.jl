@@ -82,7 +82,7 @@ struct GenserNull <: GenserNothingType{null} end
 # Primitive types
 const GenserInt8 = @genservalue(Int8)
 const GenserUInt8 = @genservalue(UInt8)
-const GenserInt16 = @genservalue(UInt16)
+const GenserInt16 = @genservalue(Int16)
 const GenserUInt16 = @genservalue(UInt16)
 const GenserInt32 = @genservalue(Int32)
 const GenserUInt32 = @genservalue(UInt32)
@@ -99,7 +99,7 @@ const GenserFloat32 = @genservalue(Float32)
 const GenserFloat64 = @genservalue(Float64)
 
 const GenserString = @genservalue(String)
-const GenserURI = @genservalue(String, uri)
+const GenserURI = @genservalue(AbstractString, uri)
 
 const GenserBinary = @genservalue(Vector{UInt8}, binary)
 const GenserUUID = @genservalue(UUID, uuid)
