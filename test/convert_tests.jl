@@ -47,6 +47,8 @@
             @test togenser(GenserString, "ABC") == GenserString("ABC")
             @test togenser(GenserURI, "ABC") == GenserURI("ABC")
             @test togenser(GenserDataType, SubString("ABC"))  == GenserStringValue{SubString{String}, Genser.str}(SubString("ABC"))
+            @test togenser(GenserString, :a) == GenserString("a")
+            @test togenser(GenserString, Base.UUID("f247354a-62cb-4b9b-8295-ce7b944a9669")) == GenserString("f247354a-62cb-4b9b-8295-ce7b944a9669")
         end
 
         @testset "Binary type" begin
@@ -65,6 +67,12 @@
             @test togenser(GenserUUID, uuid.value) == GenserUUID(uuid)
             uuidbuff = [reinterpret(UInt8, [hton(uuid.value)])...]
             @test togenser(GenserUUID, uuidbuff) == GenserUUID(uuid)
+        end
+
+        @testset "Symbol" begin
+            @test togenser(GenserDataType, :a) == GenserSymbol(:a)
+            @test togenser(GenserSymbol, :a) == GenserSymbol(:a)
+            @test togenser(GenserSymbol, "a") == GenserSymbol(:a)
         end
 
         @testset "Sequence" begin

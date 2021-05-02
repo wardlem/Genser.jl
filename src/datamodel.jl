@@ -27,7 +27,10 @@
 
     # Binary types
     binary
+
+    # Other atoms
     uuid
+    symbol
 
     # Array types
     sequence
@@ -103,6 +106,7 @@ const GenserURI = @genservalue(String, uri)
 
 const GenserBinary = @genservalue(Vector{UInt8}, binary)
 const GenserUUID = @genservalue(UUID, uuid)
+const GenserSymbol = @genservalue(Symbol, symbol)
 
 struct GenserSequence{T <: GenserDataType} <: GenserDataType{sequence}
     value::Vector{T}

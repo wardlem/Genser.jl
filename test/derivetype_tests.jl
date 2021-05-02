@@ -45,6 +45,10 @@
         @test Genser.gensertypefor(Base.UUID) == GenserUUID
     end
 
+    @testset "Symbol type" begin
+        @test Genser.gensertypefor(Symbol) == GenserSymbol
+    end
+
     @testset "Sequence types" begin
         @test Genser.gensertypefor(Vector{Char}) == GenserSequence{GenserChar}
         @test Genser.gensertypefor(Matrix{Char}) == GenserSequence{GenserChar}

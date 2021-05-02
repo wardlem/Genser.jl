@@ -72,6 +72,10 @@ togenser(::Type{GenserUUID}, v::Vector{UInt8}) = begin
 end
 togenser(::Type{GenserUUID}, v::UInt128) = GenserUUID(UUID(v))
 
+# Symbol
+togenser(::Type{GenserSymbol}, v::Symbol) = GenserSymbol(v)
+togenser(::Type{GenserSymbol}, v) = GenserSymbol(Symbol(v))
+
 # Sequences
 togenser(::Type{GenserSequence{T}}, vs::AbstractVector{T}) where T <: GenserDataType = GenserSequence{T}(vs)
 togenser(::Type{GenserSequence{T}}, vs::AbstractVector) where T <: GenserDataType = begin

@@ -21,6 +21,7 @@ gensertypefor(::Type{String}) = GenserString
 gensertypefor(T::Type{<: AbstractString}) = GenserStringValue{T, str}
 gensertypefor(::Type{Vector{UInt8}}) = GenserBinary
 gensertypefor(::Type{UUID}) = GenserUUID
+gensertypefor(::Type{Symbol}) = GenserSymbol
 gensertypefor(::Type{<: AbstractArray{V}}) where V = GenserSequence{gensertypefor(V)}
 gensertypefor(::Type{<: AbstractSet{V}}) where V = GenserSet{gensertypefor(V)}
 gensertypefor(T::Type{<: Tuple}) = begin
