@@ -1,3 +1,4 @@
+gensertypefor(T::Type{<:GenserDataType}) = T
 gensertypefor(::Type{Any}) = GenserAny
 gensertypefor(::Type{Nothing}) = GenserNull
 gensertypefor(::Type{Int8}) = GenserInt8
@@ -17,14 +18,23 @@ gensertypefor(::Type{Float16}) = GenserFloat16
 gensertypefor(::Type{Float32}) = GenserFloat32
 gensertypefor(::Type{Float64}) = GenserFloat64
 gensertypefor(::Type{String}) = GenserString
-gensertypefor(T::Type{<: AbstractString}) = GenserStringValue{T, string}
+gensertypefor(T::Type{<: AbstractString}) = GenserStringValue{T, str}
 gensertypefor(::Type{Vector{UInt8}}) = GenserBinary
 gensertypefor(::Type{UUID}) = GenserUUID
-gensertypefor(T::Type{<: AbstractArray}) = GenserSequence{T}
-gensertypefor(T::Type{<: AbstractSet}) = GenserSet{T}
-gensertypefor(T::Type{<: Tuple}) = GenserTuple{T}
-gensertypefor(T::Type{<: AbstractDict}) = GenserDict{T}
-gensertypefor(T::Type{<: NamedTuple}) = GenserRecord{T}
+gensertypefor(::Type{<: AbstractArray{V}}) where V = GenserSequence{gensertypefor(V)}
+gensertypefor(::Type{<: AbstractSet{V}}) where V = GenserSet{gensertypefor(V)}
+gensertypefor(T::Type{<: Tuple}) = begin
+    types = Base.map(gensertypefor, [T.parameters...])
+    GenserTuple{Tuple{types...}}
+end
+gensertypefor(::Type{<: AbstractDict{K,V}}) where K where V = GenserDict{gensertypefor(K),gensertypefor(V)}
+gensertypefor(T::Type{<: NamedTuple}) = begin
+    keys = fieldnames(T)
+    vals = Base.map(gensertypefor, [T.types...])
+    vals = Tuple{vals...}
+    NewT = NamedTuple{keys, vals}
+    GenserRecord{NewT}
+end
 
 function gensertypefor(T::Type)
     # Could be a struct or union
@@ -39,8 +49,18 @@ function gensertypefor(T::Type)
         # variant type
         return GenserVariant{mapuniontype(T)}
     elseif ttype === DataType
+        if T.isbitstype
+            # Store as binary?
+            throw(ArgumentError("unable to derive a genser type for a bits type"))
+        end
         # Assume a struct
-        return GenserRecord{T}
+        keys = fieldnames(T)
+        vals = Base.map(gensertypefor, [T.types...])
+        vals = Tuple{vals...}
+        NewT = NamedTuple{keys, vals}
+        return GenserRecord{NewT}
+    else
+        throw(ArgumentError("unable to derive genser type for $T"))
     end
 end
 

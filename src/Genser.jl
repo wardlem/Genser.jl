@@ -1,6 +1,6 @@
 module Genser
 
-import Base.UUID
+import Base: UUID, ==
 
 export
     GenserTag, GenserDataType, GenserValue, GenserUndefined, GenserNull,
@@ -11,8 +11,10 @@ export
     GenserStringValue, GenserString, GenserURI,
     GenserBinary, GenserUUID,
     GenserSequence, GenserSet, GenserTuple, GenserDict, GenserRecord,
-    GenserOptional, GenserVariant, GenserAny
+    GenserOptional, GenserVariant, GenserAny,
+    gensertypefor, togenser
 
     include("datamodel.jl")
     include("derivetype.jl")
+    include("convert.jl")
 end

@@ -22,7 +22,7 @@
     float64
 
     # String types
-    string
+    str
     uri
 
     # Binary types
@@ -98,40 +98,37 @@ const GenserFloat16 = @genservalue(Float16)
 const GenserFloat32 = @genservalue(Float32)
 const GenserFloat64 = @genservalue(Float64)
 
-const GenserString = @genservalue(String)
-const GenserURI = @genservalue(AbstractString, uri)
+const GenserString = @genservalue(String, str)
+const GenserURI = @genservalue(String, uri)
 
 const GenserBinary = @genservalue(Vector{UInt8}, binary)
 const GenserUUID = @genservalue(UUID, uuid)
 
-struct GenserSequence{T <: AbstractArray} <: GenserDataType{sequence}
-    value::T
-    item_type::GenserDataType
+struct GenserSequence{T <: GenserDataType} <: GenserDataType{sequence}
+    value::Vector{T}
+    # item_type::GenserDataType
 end
 
-struct GenserSet{T <: AbstractSet} <: GenserDataType{set}
-    value::T
-    item_type::GenserDataType
+struct GenserSet{T <: GenserDataType} <: GenserDataType{set}
+    value::Set{T}
+    # item_type::GenserDataType
 end
 
 struct GenserTuple{T <: Tuple} <: GenserDataType{tuple}
     value::T
-    item_types::Vector{GenserDataType}
 end
 
-struct GenserDict{T <: AbstractDict} <: GenserDataType{dict}
-    value::T
-    key_type::GenserDataType
-    item_type::GenserDataType
+struct GenserDict{K <: GenserDataType, V <: GenserDataType} <: GenserDataType{dict}
+    value::Dict{K,V}
 end
 
-struct GenserRecord{T} <: GenserDataType{record}
+struct GenserRecord{T <: NamedTuple} <: GenserDataType{record}
     value::T
-    item_types::Dict{Symbol, GenserDataType}
+    # item_types::Dict{Symbol, GenserDataType}
 end
 
 struct GenserOptional{T <: GenserDataType} <: GenserDataType{optional}
-    value::T
+    value::Union{GenserUndefined,T}
 end
 
 struct GenserVariant{T} <: GenserDataType{variant}
@@ -139,7 +136,7 @@ struct GenserVariant{T} <: GenserDataType{variant}
 end
 
 struct GenserAny <: GenserDataType{any}
-    value
+    value::GenserDataType
 end
 
 @inline function tag(::GenserDataType{t}) :: GenserTag where {t}
@@ -149,3 +146,6 @@ end
 @inline function tag(::Type{<: GenserDataType{t}}) :: GenserTag where {t}
     t
 end
+
+(==)(a::T, b::T) where {T <: GenserNothingType} = tag(a) == tag(b) 
+(==)(a::T, b::T) where {T <: GenserDataType} = tag(a) == tag(b) && a.value == b.value

@@ -8,7 +8,7 @@
     end
 
     @testset "Primitive types" begin
-        tests = [
+        tests = (
             Int8 => GenserInt8,
             UInt8 => GenserUInt8,
             Int16 => GenserInt16,
@@ -25,7 +25,7 @@
             Float16 => GenserFloat16,
             Float32 => GenserFloat32,
             Float64 => GenserFloat64,
-        ]
+        )
 
         for (T, GT) in tests
             @test Genser.gensertypefor(T) == GT
@@ -46,28 +46,32 @@
     end
 
     @testset "Sequence types" begin
-        @test Genser.gensertypefor(Vector{Char}) == GenserSequence{Vector{Char}}
+        @test Genser.gensertypefor(Vector{Char}) == GenserSequence{GenserChar}
+        @test Genser.gensertypefor(Matrix{Char}) == GenserSequence{GenserChar}
     end
 
     @testset "Set types" begin
-        @test Genser.gensertypefor(Set{Char}) == GenserSet{Set{Char}}
+        @test Genser.gensertypefor(Set{Char}) == GenserSet{GenserChar}
     end
 
     @testset "Tuple types" begin
-        @test Genser.gensertypefor(Tuple{Int, Bool}) == GenserTuple{Tuple{Int, Bool}}
+        @test Genser.gensertypefor(Tuple{Int64, Bool}) == GenserTuple{Tuple{GenserInt64, GenserBool}}
     end
 
     @testset "Dict types" begin
-        @test Genser.gensertypefor(Dict{Int, Bool}) == GenserDict{Dict{Int, Bool}}
+        @test Genser.gensertypefor(Dict{Int64, Bool}) == GenserDict{GenserInt64, GenserBool}
     end
 
     @testset "Record types" begin
-        @test Genser.gensertypefor(@NamedTuple{a::Int,b::Char}) == GenserRecord{@NamedTuple{a::Int,b::Char}}
+        T = @NamedTuple{a::Int64,b::Char}
+        DT = @NamedTuple{a::GenserInt64,b::GenserChar}
+        @test Genser.gensertypefor(T) == GenserRecord{DT}
         struct Person
             name::String
             age::UInt16
         end
-        @test Genser.gensertypefor(Person) == GenserRecord{Person}
+        DT = @NamedTuple{name::GenserString,age::GenserUInt16}
+        @test Genser.gensertypefor(Person) == GenserRecord{DT}
     end
 
     @testset "Optional types" begin

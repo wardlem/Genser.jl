@@ -19,6 +19,6 @@
         @test Genser.tag(GenserURI) == Genser.uri
         @test Genser.tag(GenserNull()) == Genser.null
         @test Genser.tag(GenserNull) == Genser.null
-        @test Genser.tag(GenserSequence{Vector{Int8}}) == Genser.sequence
+        @test Genser.tag(GenserSequence{GenserNull}) == Genser.sequence
     end
 end
