@@ -94,8 +94,14 @@
                 Int64(1) Int64(2)
                 Int64(3) Int64(5)
             ]
+            @assert typeof(v) <: Matrix
             ev = [GenserInt64(1), GenserInt64(3), GenserInt64(2), GenserInt64(5)]
 
+            @test togenser(GenserDataType, v) == GenserSequence{GenserInt64}(ev)
+
+            # Ranges
+            v = 1:3
+            ev = [GenserInt64(1), GenserInt64(2), GenserInt64(3)]
             @test togenser(GenserDataType, v) == GenserSequence{GenserInt64}(ev)
         end
 
@@ -103,6 +109,7 @@
             v = Set((Int64(1),Int64(2),Int64(3)))
             ev = Set((GenserInt64(1),GenserInt64(2),GenserInt64(3)))
             @test togenser(GenserDataType, v) == GenserSet{GenserInt64}(ev)
+            @test togenser(GenserDataType, Test.GenericSet(v)) == GenserSet{GenserInt64}(Test.GenericSet(ev))
             @test togenser(GenserSet{GenserInt64}, v) == GenserSet{GenserInt64}(ev)
             @test togenser(GenserSet{GenserChar}, "ABC") == GenserSet{GenserChar}(Set((GenserChar('A'),GenserChar('B'),GenserChar('C'))))
         end
@@ -128,6 +135,13 @@
             @test togenser(GenserDataType, v) == GenserDict{GenserString,GenserInt64}(ev)
             @test togenser(GenserDict{GenserString,GenserInt64}, v) == GenserDict{GenserString,GenserInt64}(ev)
             @test togenser(GenserDict{GenserString,GenserUInt64}, v) == GenserDict{GenserString,GenserUInt64}(ev2)
+
+            v = Base.ImmutableDict("A" => Int64(1), "B" => Int64(2))
+            ev = Base.ImmutableDict(
+                GenserString("A") => GenserInt64(1),
+                GenserString("B") => GenserInt64(2),
+            )
+            @test togenser(GenserDataType, v) == GenserDict{GenserString,GenserInt64}(ev)
         end
 
         @testset "Record" begin

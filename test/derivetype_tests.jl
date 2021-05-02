@@ -52,6 +52,7 @@
     @testset "Sequence types" begin
         @test Genser.gensertypefor(Vector{Char}) == GenserSequence{GenserChar}
         @test Genser.gensertypefor(Matrix{Char}) == GenserSequence{GenserChar}
+        @test Genser.gensertypefor(UnitRange{UInt32}) == GenserSequence{GenserUInt32}
     end
 
     @testset "Set types" begin
@@ -64,6 +65,7 @@
 
     @testset "Dict types" begin
         @test Genser.gensertypefor(Dict{Int64, Bool}) == GenserDict{GenserInt64, GenserBool}
+        @test Genser.gensertypefor(Base.ImmutableDict{Symbol, Int64}) == GenserDict{GenserSymbol, GenserInt64}
     end
 
     @testset "Record types" begin

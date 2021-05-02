@@ -109,12 +109,12 @@ const GenserUUID = @genservalue(UUID, uuid)
 const GenserSymbol = @genservalue(Symbol, symbol)
 
 struct GenserSequence{T <: GenserDataType} <: GenserDataType{sequence}
-    value::Vector{T}
+    value::AbstractVector{T}
     # item_type::GenserDataType
 end
 
 struct GenserSet{T <: GenserDataType} <: GenserDataType{set}
-    value::Set{T}
+    value::AbstractSet{T}
     # item_type::GenserDataType
 end
 
@@ -123,7 +123,7 @@ struct GenserTuple{T <: Tuple} <: GenserDataType{tuple}
 end
 
 struct GenserDict{K <: GenserDataType, V <: GenserDataType} <: GenserDataType{dict}
-    value::Dict{K,V}
+    value::AbstractDict{K,V}
 end
 
 struct GenserRecord{T <: NamedTuple} <: GenserDataType{record}
