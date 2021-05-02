@@ -50,7 +50,9 @@ function gensertypefor(T::Type)
         # variant type
         return GenserVariant{mapuniontype(T)}
     elseif ttype === DataType
-        if T.isbitstype
+        if T <: Enum
+            return GenserString
+        elseif T.isbitstype
             # Store as binary?
             throw(ArgumentError("unable to derive a genser type for a bits type"))
         end

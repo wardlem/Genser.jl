@@ -166,5 +166,10 @@
         @testset "Any" begin
             @test togenser(GenserAny, 'c') == GenserAny(GenserChar('c'))
         end
+
+        @testset "Enums" begin
+            @enum Planets tattoine degobah yavin
+            @test togenser(tattoine) == GenserString("tattoine")
+        end
     end
 end

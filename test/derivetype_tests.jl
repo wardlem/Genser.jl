@@ -86,4 +86,13 @@
     @testset "Variant types" begin
         @test Genser.gensertypefor(Union{Char,Int8}) == GenserVariant{Union{GenserChar,GenserInt8}}
     end
+
+    @testset "Enums as strings" begin
+        @enum Fruits apple banana cherry
+        @test Genser.gensertypefor(Fruits) == GenserString
+    end
+
+    @testset "Function" begin
+        @test_throws ArgumentError Genser.gensertypefor(Function)
+    end
 end
