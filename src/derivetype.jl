@@ -52,9 +52,9 @@ function gensertypefor(T::Type)
     elseif ttype === DataType
         if T <: Enum
             return GenserString
-        elseif T.isbitstype
-            # Store as binary?
-            throw(ArgumentError("unable to derive a genser type for a bits type"))
+        # elseif T.isbitstype
+        #     # Store as binary?
+        #     throw(ArgumentError("unable to derive a genser type for a bits type"))
         end
         # Assume a struct
         keys = fieldnames(T)

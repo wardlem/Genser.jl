@@ -12,7 +12,7 @@ export
     GenserBinary, GenserUUID, GenserSymbol,
     GenserSequence, GenserSet, GenserTuple, GenserDict, GenserRecord,
     GenserOptional, GenserVariant, GenserAny,
-    gensertypefor, togenser
+    gensertypefor, togenser, fromgenser
 
     include("datamodel.jl")
     include("derivetype.jl")
