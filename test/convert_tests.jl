@@ -101,7 +101,7 @@
             @test togenser(GenserDataType, v) == GenserSequence{GenserInt64}(ev)
 
             # Ranges
-            v = 1:3
+            v = Int64(1):Int64(3)
             ev = [GenserInt64(1), GenserInt64(2), GenserInt64(3)]
             @test togenser(GenserDataType, v) == GenserSequence{GenserInt64}(ev)
         end
@@ -242,7 +242,7 @@
         @testset "Char type" begin
             @test fromgenser(Char, GenserChar('c')) == 'c'
             @test fromgenser(Any, GenserChar('c')) == 'c'
-            @test fromgenser(Union{Char,Int}, GenserChar('c')) == 'c'
+            @test fromgenser(Union{Char,Int64}, GenserChar('c')) == 'c'
             @test fromgenser(String, GenserChar('c')) == "c"
             @test fromgenser(AbstractString, GenserChar('c')) == "c"
             @test fromgenser(Int32, GenserChar('c')) == Int32('c')
