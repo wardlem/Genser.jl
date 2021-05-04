@@ -3,9 +3,10 @@ function deserialize(to::Type, value, M::Module; kwargs...)
         throw(ArgumentError("$M cannot deserialize data"))
     end
 
-    genserdata = M.deserialize_genser(value; kwargs...)
+    rawdata = M.deserialize_genser(value; kwargs...)
+    genserdata = togenser(gensertypefor(to), rawdata)
 
-    fromgenser(to, genserdata::GenserDataType)
+    fromgenser(to, genserdata)
 end
 
 function deserialize(to::Type, value, ::Type{M}; kwargs...) where M <: MIME

@@ -54,6 +54,15 @@
             @test String(take!(serialize((a=1,b=true,c="Apple"), Genser.GenserJSON))) == "{\"a\":1,\"b\":true,\"c\":\"Apple\"}"
             @test String(take!(serialize(JSONSerializeStruct(1,true,"Apple"), Genser.GenserJSON))) == "{\"a\":1,\"b\":true,\"c\":\"Apple\"}"
             @test String(take!(serialize((a=Base.UUID("266945fa-8815-402a-ab1a-7701c5f53cc3"),), Genser.GenserJSON))) == "{\"a\":\"266945fa-8815-402a-ab1a-7701c5f53cc3\"}"
+
+            @testset "Binary encoding" begin
+                struct Base64EncodeStruct
+                    data::Vector{UInt8}
+                end
+    
+                Genser.gensertypefor(::Type{Base64EncodeStruct}) = GenserRecord{@NamedTuple{data::GenserBinaryType{Encoding{:base64}}}}
+                @test String(take!(serialize(Base64EncodeStruct(Vector{UInt8}("bananas")), Genser.GenserJSON))) == "{\"data\":\"YmFuYW5hcw==\"}"
+            end
         end
 
         @testset "Optionals" begin
@@ -61,7 +70,7 @@
                 a::Union{Nothing,Int64}
             end
 
-            @test String(take!(serialize(JSONOptional(12), Genser.GenserJSON))) == "{\"a\":12}"
+            @test String(take!(serialize(JSONOptional(Int64(12)), Genser.GenserJSON))) == "{\"a\":12}"
             @test String(take!(serialize(JSONOptional(nothing), Genser.GenserJSON))) == "{\"a\":null}"
         end
 
@@ -70,7 +79,7 @@
                 a::Union{Bool,Int64}
             end
 
-            @test String(take!(serialize(JSONVariant(12), Genser.GenserJSON))) == "{\"a\":12}"
+            @test String(take!(serialize(JSONVariant(Int64(12)), Genser.GenserJSON))) == "{\"a\":12}"
             @test String(take!(serialize(JSONVariant(true), Genser.GenserJSON))) == "{\"a\":true}"
         end
 

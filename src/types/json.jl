@@ -32,9 +32,16 @@ function deserialize_genser(io::Union{IO,AbstractString}; kwargs...)
     end
 
     raw = JSON.parse(io, dicttype=dicttype, inttype=inttype)
-    togenser(raw)
+    raw
 end
 
 Genser.convert_to_type(::TID, v::GenserUUID) = string(v.value)
+Genser.convert_to_type(::TID, v::GenserBinaryType{E}) where E = begin
+    if E == Encoding{:none}
+        v.value
+    else
+        fromgenser(String, v)
+    end
+end
 
 end

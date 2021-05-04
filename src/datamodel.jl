@@ -54,7 +54,7 @@ end
 "Base Genser data model type"
 abstract type GenserDataType{t} end
 
-"A type for non-collection values"
+"A type for most non-collection values"
 struct GenserValue{V, t} <: GenserDataType{t}
     value::V
 end
@@ -105,7 +105,11 @@ const GenserFloat64 = @genservalue(Float64)
 const GenserString = @genservalue(String, str)
 const GenserURI = @genservalue(String, uri)
 
-const GenserBinary = @genservalue(Vector{UInt8}, binary)
+struct GenserBinaryType{E<:Encoding} <: GenserDataType{binary}
+    value::Vector{UInt8}
+end
+const GenserBinary = GenserBinaryType{Encoding{:none}}
+
 const GenserUUID = @genservalue(UUID, uuid)
 const GenserSymbol = @genservalue(Symbol, symbol)
 
@@ -150,6 +154,14 @@ end
 
 @inline function tag(::Type{<: GenserDataType{t}}) :: GenserTag where {t}
     t
+end
+
+@inline function encoding(::Type{<: GenserDataType}) :: Encoding
+    Encoding("none")
+end
+
+@inline function encoding(::Type{<: GenserBinaryType{E}}) :: Encoding where E
+    E()
 end
 
 (==)(a::T, b::T) where {T <: GenserNothingType} = tag(a) == tag(b) 

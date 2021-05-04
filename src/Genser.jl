@@ -4,7 +4,7 @@ import Base: UUID, ==
 using Requires
 
 export
-    GenserTag, GenserDataType, GenserValue, GenserUndefined, GenserNull,
+    GenserTag, GenserDataType, GenserValue, GenserBinaryType, GenserUndefined, GenserNull,
     GenserInt8, GenserUInt8, GenserInt16, GenserUInt16, GenserInt32, GenserUInt32,
     GenserInt64, GenserUInt64, GenserInt128, GenserUInt128,
     GenserFloat16, GenserFloat32, GenserFloat64,
@@ -14,9 +14,11 @@ export
     GenserSequence, GenserSet, GenserTuple, GenserDict, GenserRecord,
     GenserOptional, GenserVariant, GenserAny,
     gensertypefor, togenser, fromgenser, convert_to_type,
-    genser_type_for_mime, serialize, deserialize,
-    TypeID
+    serialize, deserialize,
+    genser_type_for_mime, genser_converter_for_encoding,
+    TypeID, Encoding
 
+    include("encoding.jl")
     include("datamodel.jl")
     include("derivetype.jl")
     include("convert.jl")

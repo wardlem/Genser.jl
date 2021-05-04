@@ -3,15 +3,13 @@ TypeID(typeid) = TypeID{Symbol(typeid)}()
 show(io::IO, ::TypeID{typeid}) where {typeid} = print(io, "Genser.TypeID(", string(typeid), ")")
 print(io::IO, ::TypeID{typeid}) where {typeid} = print(io, typeid)
 
-# const basetypeid = typeof(TypeID(""))
-
 # Main to converter
 function togenser(::Type{GenserDataType}, v::V) where V
     T = gensertypefor(V)
     togenser(T, v)
 end
 
-# Main deconverter
+# Main from converter
 function fromgenser(::Type{T}, v::GenserDataType) where T
     throw(ArgumentError("unable to convert from $(typeof(v)) to $(T)"))
 end
@@ -105,36 +103,52 @@ fromgenser(T::Type{<:AbstractString}, v::V) where V <: GenserStringValue = begin
     T(v.value)
 end
 fromgenser(::Type{Base.UUID}, v::V) where V <: GenserStringValue = UUID(v.value)
+fromgenser(::Type{Vector{UInt8}}, v::V) where V <: GenserStringValue = Vector{UInt8}(v.value)
 
 # Binary
-togenser(::Type{GenserBinary}, v::Vector{UInt8}) = GenserBinary(v)
-togenser(::Type{GenserBinary}, v::Array) = begin
-    v = reinterpret(UInt8, hton.(v)[:])
-    GenserBinary(v)
+togenser(T::Type{<:GenserBinaryType}, v::Vector{UInt8}) = T(v)
+togenser(T::Type{<:GenserBinaryType}, v::Array) = begin
+    v = map(UInt8, v)
+    T(v)
 end
 togenser(::Type{GenserBinary}, v::AbstractString) = begin
     v = Vector{UInt8}(v)
     GenserBinary(v)
 end
+togenser(::Type{GenserBinaryType{E}}, v::AbstractString) where E = begin
+    C = genser_converter_for_encoding(E)
+    v = C.decode(v)
+    GenserBinaryType{E}(v)
+end
 
-fromgenser(::Type{Vector{UInt8}}, v::GenserBinary) = v.value
-fromgenser(T::Type{<:Vector}, v::GenserBinary) = begin
-    v = ntoh.(reinterpret(eltype(T), v.value))
+fromgenser(::Type{Vector{UInt8}}, v::V) where {V <: GenserBinaryType} = v.value
+fromgenser(T::Type{<:Vector}, v::V) where {V <: GenserBinaryType} = begin
+    v = map(eltype(T), (v.value))
     v
 end
-fromgenser(T::Type{<:Matrix}, v::GenserBinary) = begin
-    v = ntoh.(reinterpret(eltype(T), v.value))
+fromgenser(T::Type{<:Matrix}, v::V) where {V <: GenserBinaryType} = begin
+    v = map(eltype(T), (v.value))
     # Unknown dimensions...
     hcat(v)
 end
 fromgenser(::Type{AbstractString}, v::GenserBinary) = String(v.value)
 fromgenser(T::Type{<:AbstractString}, v::GenserBinary) = T(v.value)
-fromgenser(::Type{UUID}, v::GenserBinary) = begin
+fromgenser(::Type{AbstractString}, v::GenserBinaryType{E}) where E = begin
+    C = genser_converter_for_encoding(E)
+    v = C.encode(v.value)
+    v
+end
+fromgenser(T::Type{<:AbstractString}, v::GenserBinaryType{E}) where E = begin
+    C = genser_converter_for_encoding(E)
+    v = C.encode(v.value)
+    T(v)
+end
+fromgenser(::Type{UUID}, v::V) where {V <: GenserBinaryType} = begin
     @assert length(v.value) == 16 "cannot convert a binary to a uuid when its length is not  16 bytes"
     v = ntoh(reinterpret(UInt128, v.value)[1])
     UUID(v)
 end
-fromgenser(::Type{>:Vector{UInt8}}, v::GenserBinary) = v.value
+fromgenser(::Type{>:Vector{UInt8}}, v::V) where {V <: GenserBinaryType} = v.value
 
 # UUID
 togenser(::Type{GenserUUID}, v::UUID) = GenserUUID(v)
@@ -320,6 +334,18 @@ togenser(::Type{GenserDict{K,V}}, vs::AbstractDict{K,V}) where K <: GenserDataTy
 togenser(::Type{GenserDict{K,V}}, vs::AbstractDict) where K <: GenserDataType where V <: GenserDataType = begin
     pairs = []
     for (k,v) in vs
+        k = togenser(K, k)
+        v = togenser(V, v)
+        push!(pairs, k => v)
+    end
+    newvs = Dict(pairs)
+    GenserDict{K,V}(newvs)
+end
+
+togenser(::Type{GenserDict{K,V}}, vs::T) where {K,V,T} = begin
+    pairs = []
+    for k = fieldnames(T)
+        v = getfield(vs, k)
         k = togenser(K, k)
         v = togenser(V, v)
         push!(pairs, k => v)

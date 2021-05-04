@@ -56,9 +56,19 @@
             @test togenser(GenserDataType, [UInt8(1),UInt8(2)]) == GenserBinary([UInt8(1),UInt8(2)])
             @test togenser(GenserBinary, [UInt8(1),UInt8(2)]) == GenserBinary([UInt8(1),UInt8(2)])
             @test togenser(GenserBinary, [Int8(1),Int8(2)]) == GenserBinary([UInt8(1),UInt8(2)])
-            @test togenser(GenserBinary, [Int8(-1),Int8(-2)]) == GenserBinary([UInt8(255),UInt8(254)])
-            @test togenser(GenserBinary, [UInt16(1),UInt16(2)]) == GenserBinary([UInt8(0),UInt8(1),UInt8(0),UInt8(2)])
+            # @test togenser(GenserBinary, [Int8(-1),Int8(-2)]) == GenserBinary([UInt8(255),UInt8(254)])
+            @test togenser(GenserBinary, [UInt16(1),UInt16(2)]) == GenserBinary([UInt8(1),UInt8(2)])
             @test togenser(GenserBinary, "abc") == GenserBinary([UInt8(0x61),UInt8(0x62),UInt8(0x63)])
+
+            @testset "Base64 Encoding" begin
+                @test togenser(GenserBinaryType{Encoding{:base64}}, [UInt8(1),UInt8(2)]) == GenserBinaryType{Encoding{:base64}}([UInt8(1),UInt8(2)])
+                @test togenser(GenserBinaryType{Encoding{:base64}}, "AQIDBAo=") == GenserBinaryType{Encoding{:base64}}([UInt8(1),UInt8(2),UInt8(3),UInt8(4),UInt8(10)])
+            end
+
+            @testset "Hex Encoding" begin
+                @test togenser(GenserBinaryType{Encoding{:hex}}, [UInt8(1),UInt8(2)]) == GenserBinaryType{Encoding{:hex}}([UInt8(1),UInt8(2)])
+                @test togenser(GenserBinaryType{Encoding{:hex}}, "01020304ff") == GenserBinaryType{Encoding{:hex}}([UInt8(1),UInt8(2),UInt8(3),UInt8(4),UInt8(255)])
+            end
         end
 
         @testset "UUID" begin
@@ -143,6 +153,13 @@
                 GenserString("B") => GenserInt64(2),
             )
             @test togenser(GenserDataType, v) == GenserDict{GenserString,GenserInt64}(ev)
+
+            struct ToGenserDict 
+                A::Int64
+                B::Int64
+            end
+
+            @test togenser(GenserDict{GenserString,GenserInt64}, ToGenserDict(1, 2)) == GenserDict{GenserString,GenserInt64}(ev)
         end
 
         @testset "Record" begin
@@ -261,17 +278,28 @@
             @test fromgenser(Char, GenserString("a")) == 'a'
             uuid = Base.UUID("f247354a-62cb-4b9b-8295-ce7b944a9669")
             @test fromgenser(Base.UUID, GenserString(string(uuid))) === uuid
+            @test fromgenser(Vector{UInt8}, GenserString("bananas")) == UInt8[0x62, 0x61, 0x6e, 0x61, 0x6e, 0x61, 0x73]
         end
 
         @testset "Binary types" begin
             @test fromgenser(Vector{UInt8}, GenserBinary([UInt8(1), UInt8(2)])) == [UInt8(1), UInt8(2)]
             @test fromgenser(Any, GenserBinary([UInt8(1), UInt8(2)])) == [UInt8(1), UInt8(2)]
             @test fromgenser(Union{Vector{UInt8}, String}, GenserBinary([UInt8(1), UInt8(2)])) == [UInt8(1), UInt8(2)]
-            @test fromgenser(Vector{UInt16}, GenserBinary([UInt8(0),UInt8(1),UInt8(0),UInt8(2)])) == [UInt16(1),UInt16(2)]
+            @test fromgenser(Vector{UInt16}, GenserBinary([UInt8(1),UInt8(2)])) == [UInt16(1),UInt16(2)]
             @test fromgenser(String, GenserBinary([UInt8(0x61),UInt8(0x62),UInt8(0x63)])) == "abc"
             uuid = Base.UUID("f247354a-62cb-4b9b-8295-ce7b944a9669")
             uuidbuff = [reinterpret(UInt8, [hton(uuid.value)])...]
             @test fromgenser(Base.UUID, GenserBinary(uuidbuff)) == uuid
+
+            @testset "Base64 Encoding" begin
+                @test fromgenser(Vector{UInt8}, GenserBinaryType{Encoding{:base64}}([UInt8(1),UInt8(2)])) == [UInt8(1),UInt8(2)]
+                @test fromgenser(String, GenserBinaryType{Encoding{:base64}}([UInt8(1),UInt8(2),UInt8(3),UInt8(4),UInt8(10)])) == "AQIDBAo="
+            end
+
+            @testset "Hex Encoding" begin
+                @test fromgenser(Vector{UInt8}, GenserBinaryType{Encoding{:hex}}([UInt8(1),UInt8(2)])) == [UInt8(1),UInt8(2)]
+                @test fromgenser(String, GenserBinaryType{Encoding{:hex}}([UInt8(1),UInt8(2),UInt8(3),UInt8(4),UInt8(255)])) == "01020304ff"
+            end
         end
 
         @testset "UUID" begin
@@ -433,5 +461,18 @@
         @test convert_to_type(typeid, GenserInt64(12)) === Int64(12)
         @test convert_to_type(typeid, GenserBool(true)) === "true"
         @test convert_to_type(typeid, GenserUUID(Base.UUID("f247354a-62cb-4b9b-8295-ce7b944a9669"))) == "f247354a-62cb-4b9b-8295-ce7b944a9669"
+    end
+
+    @testset "Custom genser type" begin
+        struct CustomStruct
+            id::Base.UUID
+            data::Vector{UInt8}
+        end
+
+        custom_genser_type = GenserDict{GenserSymbol, GenserString}
+        Genser.gensertypefor(::Type{CustomStruct}) = custom_genser_type
+        @test gensertypefor(CustomStruct) == custom_genser_type
+        # v = CustomStruct(Base.UUID("64e6e07c-e69e-43a6-a37d-176d9f7e8a07"), Vector{UInt8}("bananas"))
+        # @test fromgenser(CustomStruct, togenser(custom_genser_type, v)) == v
     end
 end

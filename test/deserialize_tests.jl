@@ -4,7 +4,7 @@
             @test deserialize("null", Genser.GenserJSON) === nothing
             @test deserialize(Nothing, "null", Genser.GenserJSON) === nothing
             @test deserialize(Union{Nothing,Int64}, "null", Genser.GenserJSON) === nothing
-            @test_throws ArgumentError deserialize(Int64, "null", Genser.GenserJSON)
+            @test_throws MethodError deserialize(Int64, "null", Genser.GenserJSON)
         end
 
         @testset "Simple values" begin
@@ -67,6 +67,15 @@
                 c::String
             end
             @test deserialize(JSONDeserializeStruct, "{\"a\":1,\"b\":true,\"c\":\"Apple\"}", Genser.GenserJSON) == JSONDeserializeStruct(1,true,"Apple")
+
+            @testset "Binary encoding" begin
+                struct Base64DecodeStruct
+                    data::Vector{UInt8}
+                end
+    
+                Genser.gensertypefor(::Type{Base64DecodeStruct}) = GenserRecord{@NamedTuple{data::GenserBinaryType{Encoding{:base64}}}}
+                @test deserialize(Base64DecodeStruct, "{\"data\":\"YmFuYW5hcw==\"}", Genser.GenserJSON).data == Base64DecodeStruct(Vector{UInt8}("bananas")).data
+            end
         end
     end
 end
