@@ -9,6 +9,7 @@ export
     GenserInt64, GenserUInt64, GenserInt128, GenserUInt128,
     GenserFloat16, GenserFloat32, GenserFloat64,
     GenserBool, GenserChar, GenserBigInt,
+    GenserNumberValue, GenserIntegerValue, GenserSignedValue, GenserUnsignedValue, GenserFloatValue,
     GenserStringValue, GenserString, GenserURI,
     GenserBinary, GenserUUID, GenserSymbol,
     GenserSequence, GenserSet, GenserTuple, GenserDict, GenserRecord,

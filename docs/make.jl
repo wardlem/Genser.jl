@@ -17,12 +17,12 @@ makedocs(;
     ),
     pages=[
         "Genser" => "index.md",
-        "Manual" => any[
+        "Manual" => [
             "manual/overview.md",
-            "manual/datamodel.md"
+            "manual/datamodel.md",
         ],
-        "Library" => any[
-            "lib/public.md"
+        "Library" => [
+            "lib/public.md",
         ]
     ],
 )
