@@ -16,11 +16,18 @@ makedocs(;
         assets=String[],
     ),
     pages=[
-        "Home" => "index.md",
+        "Genser" => "index.md",
+        "Manual" => any[
+            "manual/overview.md",
+            "manual/datamodel.md"
+        ],
+        "Library" => any[
+            "lib/public.md"
+        ]
     ],
 )
 
 deploydocs(;
     repo="github.com/wardlem/Genser.jl",
-    devbranch="main"
+    devbranch="main",
 )

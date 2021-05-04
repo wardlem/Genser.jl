@@ -1,55 +1,67 @@
-@enum GenserTag begin
+struct Tag{tag} end
+Tag(tag) = Tag{Symbol(tag)}()
+Base.show(io::IO, ::Tag{tag}) where {tag} = Base.print(io, "Genser.Tag(:$tag)")
+Base.print(io::IO, ::Tag{tag}) where {tag} = Base.print(io, tag)
+
+tags = [
     # Unit types
-    undefined=0
-    null
+    :undefined,
+    :null,
 
     # Primitive types
-    int8
-    uint8
-    int16
-    uint16
-    int32
-    uint32
-    int64
-    uint64
-    int128
-    uint128
-    bigint
-    bool
-    char
-    float16
-    float32
-    float64
+    :int8,
+    :uint8,
+    :int16,
+    :uint16,
+    :int32,
+    :uint32,
+    :int64,
+    :uint64,
+    :int128,
+    :uint128,
+    :bigint,
+    :bool,
+    :char,
+    :float16,
+    :float32,
+    :float64,
 
     # String types
-    str
-    uri
+    :str,
+    :uri,
 
     # Binary types
-    binary
+    :binary,
     # TODO: Add string encoding suggestions (e.g. base64)
 
     # Other atoms
-    uuid
-    symbol
+    :uuid,
+    :symbol,
 
     # Array types
-    sequence
-    tuple
-    set
+    :sequence,
+    :tuple,
+    :set,
 
     # Dict types
-    dict
-    record
-    namedtuple
+    :dict,
+    :record,
+    :namedtuple,
 
     # Union types
-    variant
-    optional
+    :variant,
+    :optional,
 
     # Any type
-    any
+    :any,
+]
+
+for tag = tags
+    tagstr = string(tag)
+    @eval const $tag = Tag($tagstr)
 end
+
+const GenserTag = Tag
 
 "Base Genser data model type"
 abstract type GenserDataType{t} end
@@ -105,10 +117,10 @@ const GenserFloat64 = @genservalue(Float64)
 const GenserString = @genservalue(String, str)
 const GenserURI = @genservalue(String, uri)
 
-struct GenserBinaryType{E<:Encoding} <: GenserDataType{binary}
+struct GenserBinaryValue{E<:Encoding} <: GenserDataType{binary}
     value::Vector{UInt8}
 end
-const GenserBinary = GenserBinaryType{Encoding{:none}}
+const GenserBinary = GenserBinaryValue{Encoding{:none}}
 
 const GenserUUID = @genservalue(UUID, uuid)
 const GenserSymbol = @genservalue(Symbol, symbol)
@@ -140,7 +152,7 @@ struct GenserOptional{T <: GenserDataType} <: GenserDataType{optional}
     value::Union{GenserUndefined,T}
 end
 
-struct GenserVariant{T} <: GenserDataType{variant}
+struct GenserVariant{T <: GenserDataType} <: GenserDataType{variant}
     value::T
 end
 
@@ -160,7 +172,7 @@ end
     Encoding("none")
 end
 
-@inline function encoding(::Type{<: GenserBinaryType{E}}) :: Encoding where E
+@inline function encoding(::Type{<: GenserBinaryValue{E}}) :: Encoding where E
     E()
 end
 

@@ -61,13 +61,13 @@
             @test togenser(GenserBinary, "abc") == GenserBinary([UInt8(0x61),UInt8(0x62),UInt8(0x63)])
 
             @testset "Base64 Encoding" begin
-                @test togenser(GenserBinaryType{Encoding{:base64}}, [UInt8(1),UInt8(2)]) == GenserBinaryType{Encoding{:base64}}([UInt8(1),UInt8(2)])
-                @test togenser(GenserBinaryType{Encoding{:base64}}, "AQIDBAo=") == GenserBinaryType{Encoding{:base64}}([UInt8(1),UInt8(2),UInt8(3),UInt8(4),UInt8(10)])
+                @test togenser(GenserBinaryValue{Encoding{:base64}}, [UInt8(1),UInt8(2)]) == GenserBinaryValue{Encoding{:base64}}([UInt8(1),UInt8(2)])
+                @test togenser(GenserBinaryValue{Encoding{:base64}}, "AQIDBAo=") == GenserBinaryValue{Encoding{:base64}}([UInt8(1),UInt8(2),UInt8(3),UInt8(4),UInt8(10)])
             end
 
             @testset "Hex Encoding" begin
-                @test togenser(GenserBinaryType{Encoding{:hex}}, [UInt8(1),UInt8(2)]) == GenserBinaryType{Encoding{:hex}}([UInt8(1),UInt8(2)])
-                @test togenser(GenserBinaryType{Encoding{:hex}}, "01020304ff") == GenserBinaryType{Encoding{:hex}}([UInt8(1),UInt8(2),UInt8(3),UInt8(4),UInt8(255)])
+                @test togenser(GenserBinaryValue{Encoding{:hex}}, [UInt8(1),UInt8(2)]) == GenserBinaryValue{Encoding{:hex}}([UInt8(1),UInt8(2)])
+                @test togenser(GenserBinaryValue{Encoding{:hex}}, "01020304ff") == GenserBinaryValue{Encoding{:hex}}([UInt8(1),UInt8(2),UInt8(3),UInt8(4),UInt8(255)])
             end
         end
 
@@ -292,13 +292,13 @@
             @test fromgenser(Base.UUID, GenserBinary(uuidbuff)) == uuid
 
             @testset "Base64 Encoding" begin
-                @test fromgenser(Vector{UInt8}, GenserBinaryType{Encoding{:base64}}([UInt8(1),UInt8(2)])) == [UInt8(1),UInt8(2)]
-                @test fromgenser(String, GenserBinaryType{Encoding{:base64}}([UInt8(1),UInt8(2),UInt8(3),UInt8(4),UInt8(10)])) == "AQIDBAo="
+                @test fromgenser(Vector{UInt8}, GenserBinaryValue{Encoding{:base64}}([UInt8(1),UInt8(2)])) == [UInt8(1),UInt8(2)]
+                @test fromgenser(String, GenserBinaryValue{Encoding{:base64}}([UInt8(1),UInt8(2),UInt8(3),UInt8(4),UInt8(10)])) == "AQIDBAo="
             end
 
             @testset "Hex Encoding" begin
-                @test fromgenser(Vector{UInt8}, GenserBinaryType{Encoding{:hex}}([UInt8(1),UInt8(2)])) == [UInt8(1),UInt8(2)]
-                @test fromgenser(String, GenserBinaryType{Encoding{:hex}}([UInt8(1),UInt8(2),UInt8(3),UInt8(4),UInt8(255)])) == "01020304ff"
+                @test fromgenser(Vector{UInt8}, GenserBinaryValue{Encoding{:hex}}([UInt8(1),UInt8(2)])) == [UInt8(1),UInt8(2)]
+                @test fromgenser(String, GenserBinaryValue{Encoding{:hex}}([UInt8(1),UInt8(2),UInt8(3),UInt8(4),UInt8(255)])) == "01020304ff"
             end
         end
 

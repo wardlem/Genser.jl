@@ -106,8 +106,8 @@ fromgenser(::Type{Base.UUID}, v::V) where V <: GenserStringValue = UUID(v.value)
 fromgenser(::Type{Vector{UInt8}}, v::V) where V <: GenserStringValue = Vector{UInt8}(v.value)
 
 # Binary
-togenser(T::Type{<:GenserBinaryType}, v::Vector{UInt8}) = T(v)
-togenser(T::Type{<:GenserBinaryType}, v::Array) = begin
+togenser(T::Type{<:GenserBinaryValue}, v::Vector{UInt8}) = T(v)
+togenser(T::Type{<:GenserBinaryValue}, v::Array) = begin
     v = map(UInt8, v)
     T(v)
 end
@@ -115,40 +115,40 @@ togenser(::Type{GenserBinary}, v::AbstractString) = begin
     v = Vector{UInt8}(v)
     GenserBinary(v)
 end
-togenser(::Type{GenserBinaryType{E}}, v::AbstractString) where E = begin
+togenser(::Type{GenserBinaryValue{E}}, v::AbstractString) where E = begin
     C = genser_converter_for_encoding(E)
     v = C.decode(v)
-    GenserBinaryType{E}(v)
+    GenserBinaryValue{E}(v)
 end
 
-fromgenser(::Type{Vector{UInt8}}, v::V) where {V <: GenserBinaryType} = v.value
-fromgenser(T::Type{<:Vector}, v::V) where {V <: GenserBinaryType} = begin
+fromgenser(::Type{Vector{UInt8}}, v::V) where {V <: GenserBinaryValue} = v.value
+fromgenser(T::Type{<:Vector}, v::V) where {V <: GenserBinaryValue} = begin
     v = map(eltype(T), (v.value))
     v
 end
-fromgenser(T::Type{<:Matrix}, v::V) where {V <: GenserBinaryType} = begin
+fromgenser(T::Type{<:Matrix}, v::V) where {V <: GenserBinaryValue} = begin
     v = map(eltype(T), (v.value))
     # Unknown dimensions...
     hcat(v)
 end
 fromgenser(::Type{AbstractString}, v::GenserBinary) = String(v.value)
 fromgenser(T::Type{<:AbstractString}, v::GenserBinary) = T(v.value)
-fromgenser(::Type{AbstractString}, v::GenserBinaryType{E}) where E = begin
+fromgenser(::Type{AbstractString}, v::GenserBinaryValue{E}) where E = begin
     C = genser_converter_for_encoding(E)
     v = C.encode(v.value)
     v
 end
-fromgenser(T::Type{<:AbstractString}, v::GenserBinaryType{E}) where E = begin
+fromgenser(T::Type{<:AbstractString}, v::GenserBinaryValue{E}) where E = begin
     C = genser_converter_for_encoding(E)
     v = C.encode(v.value)
     T(v)
 end
-fromgenser(::Type{UUID}, v::V) where {V <: GenserBinaryType} = begin
+fromgenser(::Type{UUID}, v::V) where {V <: GenserBinaryValue} = begin
     @assert length(v.value) == 16 "cannot convert a binary to a uuid when its length is not  16 bytes"
     v = ntoh(reinterpret(UInt128, v.value)[1])
     UUID(v)
 end
-fromgenser(::Type{>:Vector{UInt8}}, v::V) where {V <: GenserBinaryType} = v.value
+fromgenser(::Type{>:Vector{UInt8}}, v::V) where {V <: GenserBinaryValue} = v.value
 
 # UUID
 togenser(::Type{GenserUUID}, v::UUID) = GenserUUID(v)

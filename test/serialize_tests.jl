@@ -60,7 +60,7 @@
                     data::Vector{UInt8}
                 end
     
-                Genser.gensertypefor(::Type{Base64EncodeStruct}) = GenserRecord{@NamedTuple{data::GenserBinaryType{Encoding{:base64}}}}
+                Genser.gensertypefor(::Type{Base64EncodeStruct}) = GenserRecord{@NamedTuple{data::GenserBinaryValue{Encoding{:base64}}}}
                 @test String(take!(serialize(Base64EncodeStruct(Vector{UInt8}("bananas")), Genser.GenserJSON))) == "{\"data\":\"YmFuYW5hcw==\"}"
             end
         end

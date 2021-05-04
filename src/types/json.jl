@@ -36,7 +36,7 @@ function deserialize_genser(io::Union{IO,AbstractString}; kwargs...)
 end
 
 Genser.convert_to_type(::TID, v::GenserUUID) = string(v.value)
-Genser.convert_to_type(::TID, v::GenserBinaryType{E}) where E = begin
+Genser.convert_to_type(::TID, v::GenserBinaryValue{E}) where E = begin
     if E == Encoding{:none}
         v.value
     else
