@@ -3,6 +3,9 @@ uuid = "fd006b10-c86c-4a41-b27e-30173f8e085d"
 authors = ["Mark Wardle <mwwardle@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+Requires = "ae029012-a4dd-5104-9daa-d747884805df"
+
 [compat]
 julia = "1.5"
 

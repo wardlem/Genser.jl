@@ -259,6 +259,8 @@
             @test fromgenser(Int32, GenserString("123")) == Int32(123)
             @test fromgenser(Bool, GenserString("true")) == true
             @test fromgenser(Char, GenserString("a")) == 'a'
+            uuid = Base.UUID("f247354a-62cb-4b9b-8295-ce7b944a9669")
+            @test fromgenser(Base.UUID, GenserString(string(uuid))) === uuid
         end
 
         @testset "Binary types" begin
@@ -347,6 +349,24 @@
             @test fromgenser(Union{typeof(ev), Char}, v) == ev
             @test fromgenser(Union{typeof(ev2), Char}, v) == ev2
             @test fromgenser(Any, v) == ev
+
+            ET = @NamedTuple{A::Int64, B::Int64}
+            @test fromgenser(ET, v) == (A = Int64(1), B = Int64(2))
+
+            ET = @NamedTuple{A::Bool, B::Char}
+            @test fromgenser(ET, v) == (A = true, B = Char(2))
+
+            struct DictTest1
+                A::Int64
+                B::Int64
+            end
+            @test fromgenser(DictTest1, v) == DictTest1(1, 2)
+
+            struct DictTest2
+                A::Bool
+                B::Char
+            end
+            @test fromgenser(DictTest2, v) == DictTest2(true, Char(2))
         end
 
         @testset "Record" begin
@@ -401,5 +421,17 @@
             @test fromgenser(ET, T(GenserBool(true))) == true
             @test fromgenser(ET, T(GenserChar('a'))) == 'a'
         end
+    end
+
+    @testset "Conversion override" begin
+        typeid = TypeID("testtype")
+        TestType = typeof(typeid)
+        # Genser.convert_to_type(::TestType, T::Type,v::GenserDataType) = Genser.convert_to_type(Genser.basetypeid, T, v)
+        Genser.convert_to_type(::TestType, v::GenserBool) = string(v.value)
+        Genser.convert_to_type(::TestType, v::GenserUUID) = string(v.value)
+
+        @test convert_to_type(typeid, GenserInt64(12)) === Int64(12)
+        @test convert_to_type(typeid, GenserBool(true)) === "true"
+        @test convert_to_type(typeid, GenserUUID(Base.UUID("f247354a-62cb-4b9b-8295-ce7b944a9669"))) == "f247354a-62cb-4b9b-8295-ce7b944a9669"
     end
 end

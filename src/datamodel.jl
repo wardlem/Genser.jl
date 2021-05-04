@@ -27,6 +27,7 @@
 
     # Binary types
     binary
+    # TODO: Add string encoding suggestions (e.g. base64)
 
     # Other atoms
     uuid

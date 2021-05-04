@@ -1,14 +1,31 @@
+struct TypeID{typeid} end
+TypeID(typeid) = TypeID{Symbol(typeid)}()
+show(io::IO, ::TypeID{typeid}) where {typeid} = print(io, "Genser.TypeID(", string(typeid), ")")
+print(io::IO, ::TypeID{typeid}) where {typeid} = print(io, typeid)
+
+# const basetypeid = typeof(TypeID(""))
+
 # Main to converter
 function togenser(::Type{GenserDataType}, v::V) where V
     T = gensertypefor(V)
     togenser(T, v)
 end
 
+# Main deconverter
 function fromgenser(::Type{T}, v::GenserDataType) where T
     throw(ArgumentError("unable to convert from $(typeof(v)) to $(T)"))
 end
 
-togenser(::Type{T}, v::T) where T <: GenserDataType = V
+# Default convert_to_type
+function convert_to_type(type, v::GenserDataType) where T
+    if type isa TypeID
+        fromgenser(Any, v)
+    else
+        fromgenser(type, v)
+    end
+end
+
+togenser(::Type{T}, v::T) where T <: GenserDataType = v
 
 Base.convert(::Type{T}, v::T) where T <:GenserDataType = v
 Base.convert(::Type{T}, v) where T <:GenserDataType = togenser(T, v)
@@ -17,8 +34,10 @@ Base.convert(::Type{Any}, v::V) where V <:GenserDataType = fromgenser(Any, v)
 
 togenser(v) = togenser(GenserDataType, v)
 fromgenser(v::V) where V <: GenserDataType = fromgenser(Any, v)
-# fromgenser(::Type{Any}, v::V) where V <: GenserDataType = v.value
 fromgenser(::Type{T}, v::GenserValue{T}) where T = v.value
+
+# Any
+fromgenser(::Type{Any}, v::GenserAny) = fromgenser(v.value)
 
 # Nothing
 togenser(T::Type{<:GenserNothingType}, v) = T()
@@ -49,6 +68,7 @@ for (T, GT) = (
     @eval togenser(::Type{$GT}, v::V) where V <: AbstractString = $GT(parse($T, v))
 
     @eval fromgenser(T::Type{<:Number}, v::$GT) = T(v.value)
+    @eval fromgenser(T::Type{Char}, v::$GT) = T(v.value)
     # @eval fromgenser(T::Type{Any}, v::$GT) = v.value
     @eval fromgenser(T::Type{>:$T}, v::$GT) = v.value
 end
@@ -84,6 +104,7 @@ fromgenser(T::Type{<:AbstractString}, v::V) where V <: GenserStringValue = begin
     T = T.isconcretetype ? T : typeof(v.value)
     T(v.value)
 end
+fromgenser(::Type{Base.UUID}, v::V) where V <: GenserStringValue = UUID(v.value)
 
 # Binary
 togenser(::Type{GenserBinary}, v::Vector{UInt8}) = GenserBinary(v)
@@ -193,6 +214,13 @@ fromgenser(T::Type{<: AbstractSet}, v::GenserSequence) = begin
     T(vs)
 end
 
+convert_to_type(m, v::GenserSequence) = begin
+    map(v.value) do subv
+        convert_to_type(m, subv)
+    end
+end
+
+
 # Sets
 togenser(::Type{GenserSet{T}}, vs::AbstractSet{T}) where T <: GenserDataType = GenserSet{T}(vs)
 togenser(::Type{GenserSet{T}}, vs::AbstractSet) where T <: GenserDataType = begin
@@ -238,6 +266,14 @@ fromgenser(T::Type{>: Set{E}}, v::GenserSet) where E = begin
     Set(vs)::T
 end
 
+convert_to_type(m, v::GenserSet) = begin
+    newv = map([v.value...]) do subv
+        convert_to_type(m, subv)
+    end
+
+    Set(newv)
+end
+
 
 # Tuples
 togenser(::Type{GenserTuple{T}}, v::T) where T = GenserTuple{T}(v)
@@ -261,6 +297,14 @@ fromgenser(T::Type{<:AbstractVector}, v::GenserTuple) = begin
     end
 
     T([v...])
+end
+
+convert_to_type(m, v::GenserTuple) = begin
+    v = Base.map(v.value) do subv
+        convert_to_type(m, subv)
+    end
+
+    v
 end
 
 fromgenser(T::Type{Any}, v::GenserTuple) = begin
@@ -306,11 +350,51 @@ fromgenser(T::Type{>:Dict{DK, DV}}, vs::GenserDict{K,V}) where {DK, DV, K, V} = 
     Dict(pairs)
 end
 
+fromgenser(T::Type{<:NamedTuple}, vs::GenserDict{K,V}) where {K, V} = begin
+    args = []
+    for (key, type) = zip(fieldnames(T), T.types)
+        gkey = togenser(K, key)
+        if haskey(vs.value, gkey)
+            push!(args, fromgenser(type, vs.value[gkey]))
+        else
+            # Attempt to convert from nothing
+            push!(args, fromgenser(type, GenserUndefined()))
+        end
+    end
+    T(args)
+end
+
 fromgenser(T::Type{Any}, vs::GenserDict{K,V}) where {K, V} = begin
     pairs = []
     for (k,v) in vs.value
         k = fromgenser(Any, k)
         v = fromgenser(Any, v)
+        push!(pairs, k => v)
+    end
+    Dict(pairs)
+end
+
+fromgenser(::Type{T}, v::GenserDict{K,V}) where {T,K,V} = begin
+    args = []
+    for (key, type) = zip(fieldnames(T), T.types)
+        gkey = togenser(K, key)
+        if haskey(v.value, gkey)
+            push!(args, fromgenser(type, v.value[gkey]))
+        else
+            # Attempt to convert from nothing
+            push!(args, fromgenser(type, GenserUndefined()))
+        end
+    end
+
+    # TODO: Need a way to set an instantiation strategy for the type
+    T(args...)
+end
+
+convert_to_type(m, vs::GenserDict{K,V}) where {K, V} = begin
+    pairs = []
+    for (k,v) in vs.value
+        k = convert_to_type(m, k)
+        v = convert_to_type(m, v)
         push!(pairs, k => v)
     end
     Dict(pairs)
@@ -395,6 +479,12 @@ fromgenser(::Type{T}, v::GenserRecord) where T = begin
     T(args...)
 end
 
+convert_to_type(m, v::GenserRecord) = begin
+    Base.map(v.value) do subv
+        convert_to_type(m, subv)
+    end
+end
+
 # Optionals
 togenser(::Type{GenserOptional{T}}, v::T) where T = GenserOptional{T}(v)
 togenser(::Type{GenserOptional{T}}, v::Nothing) where T = GenserOptional{T}(GenserUndefined())
@@ -410,6 +500,8 @@ fromgenser(T::Type{>: Nothing}, v::V) where V <: GenserOptional = begin
     end
 end
 
+convert_to_type(m, v::GenserOptional) = convert_to_type(m, v.value)
+
 # Variants
 togenser(::Type{GenserVariant{T}}, v::T) where T = GenserVariant{T}(v)
 togenser(::Type{GenserVariant{T}}, v::V) where {T, V} = begin
@@ -424,8 +516,9 @@ fromgenser(::Type{T}, v::V) where T where V <: GenserVariant = begin
     # TODO: Fix this
     fromgenser(T, v.value)
 end
+convert_to_type(m, v::GenserVariant) = convert_to_type(m, v.value)
 
 # Any
 togenser(::Type{GenserAny}, v::T) where T <: GenserDataType = GenserAny(v)
 togenser(::Type{GenserAny}, v::T) where T = GenserAny(togenser(v))
-
+fromgenser(::Type{T}, v::GenserAny) where T = fromgenser(T, v.value)
