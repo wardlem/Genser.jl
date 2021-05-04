@@ -22,4 +22,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/wardlem/Genser.jl",
+    devbranch="main"
 )
