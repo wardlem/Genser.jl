@@ -5,6 +5,8 @@ print(io::IO, ::Encoding{encoding}) where {encoding} = print(io, encoding)
 
 function genser_converter_for_encoding end
 
+function fieldencoding(a, b) Encoding{:none} end
+
 module Base64Converter
     using Base64
     using Genser

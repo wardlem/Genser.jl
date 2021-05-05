@@ -46,7 +46,7 @@ struct DataContainer
     contents::Vector{UInt8}
 end
 
-@propencoding DataContainer :contents :base64
+@fieldencoding DataContainer :contents :base64
 
 data = DataContainer(UInt8[10,9,8,7])
 json = serialize(data, "application/json")

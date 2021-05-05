@@ -78,6 +78,26 @@
         end
         DT = @NamedTuple{name::GenserString,age::GenserUInt16}
         @test Genser.gensertypefor(Person) == GenserRecord{DT}
+
+        @testset "Binary encoding override" begin
+            struct Base64Override
+                data::Vector{UInt8}
+            end
+
+            Genser.fieldencoding(::Type{Base64Override}, ::Type{Val{:data}}) = Encoding{:base64}
+            DT = @NamedTuple{data::GenserBinaryValue{Encoding{:base64}}}
+            @test Genser.gensertypefor(Base64Override) == GenserRecord{DT}
+        end
+
+        @testset "Binary encoding override with macro" begin
+            struct HexOverride
+                data::Vector{UInt8}
+            end
+
+            @fieldencoding HexOverride :data :hex
+            DT = @NamedTuple{data::GenserBinaryValue{Encoding{:hex}}}
+            @test Genser.gensertypefor(HexOverride) == GenserRecord{DT}
+        end
     end
 
     @testset "Optional types" begin
