@@ -18,7 +18,7 @@ export
     serialize, deserialize,
     genser_type_for_mime, genser_converter_for_encoding,
     TypeID, Encoding,
-    @fieldencoding
+    @fieldencoding, @fieldtype
 
     include("encoding.jl")
     include("datamodel.jl")

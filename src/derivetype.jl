@@ -1,3 +1,5 @@
+function fieldtype(t, f) nothing end
+
 gensertypefor(T::Type{<:GenserDataType}; kwargs...) = T
 gensertypefor(::Type{Any}; kwargs...) = GenserAny
 gensertypefor(::Type{Nothing}; kwargs...) = GenserNull
@@ -69,7 +71,12 @@ function gensertypefor(T::Type; kwargs...)
         # Assume a struct
         keys = fieldnames(T)
         vals = Base.map(zip(keys, T.types)) do (fieldkey, type)
-            gensertypefor(type, fieldkey=fieldkey, containertype=T)
+            definedtype = fieldtype(T, Val{fieldkey})
+            if definedtype isa DataType && definedtype <: GenserDataType && definedtype.isconcretetype
+                definedtype
+            else
+                gensertypefor(type, fieldkey=fieldkey, containertype=T)
+            end
         end
         vals = Tuple{vals...}
         NewT = NamedTuple{keys, vals}

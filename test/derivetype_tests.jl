@@ -98,6 +98,16 @@
             DT = @NamedTuple{data::GenserBinaryValue{Encoding{:hex}}}
             @test Genser.gensertypefor(HexOverride) == GenserRecord{DT}
         end
+
+        @testset "Type override" begin
+            struct TypeOverride
+                data::String
+            end
+
+            @fieldtype TypeOverride :data GenserBinary
+            DT = @NamedTuple{data::GenserBinary}
+            @test Genser.gensertypefor(TypeOverride) == GenserRecord{DT}
+        end
     end
 
     @testset "Optional types" begin
