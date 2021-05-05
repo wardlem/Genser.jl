@@ -1,5 +1,5 @@
 module GenserJSON
-import JSON
+import ..JSON
 using Genser
 
 const typeid = Genser.TypeID("genserjson")
