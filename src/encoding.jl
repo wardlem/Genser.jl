@@ -1,5 +1,17 @@
+"""
+    Genser.Encoding{encoding}
+
+Encoding for binary values when converted to and from string values.
+"""
 struct Encoding{encoding} end
+
+"""
+    Genser.Encoding(encoding)
+
+Construct an encoding.
+"""
 Encoding(encoding) = Encoding{Symbol(encoding)}()
+
 show(io::IO, ::Encoding{encoding}) where {encoding} = print(io, "Genser.Encoding(", string(encoding), ")")
 print(io::IO, ::Encoding{encoding}) where {encoding} = print(io, encoding)
 

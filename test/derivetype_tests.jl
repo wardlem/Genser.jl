@@ -25,6 +25,8 @@
             Float16 => GenserFloat16,
             Float32 => GenserFloat32,
             Float64 => GenserFloat64,
+            BigFloat => GenserBigFloat,
+            Rational => GenserRational,
         )
 
         for (T, GT) in tests

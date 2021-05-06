@@ -1,3 +1,12 @@
+"""
+    Genser.serialize([io::IO,] value, M::Module; kwargs...)
+
+Serialize a value with an explicit serialization module.
+
+If `io` is not provided, a `Vector{UInt8}` of the contents is returned.
+
+The keyword arguments are passed to the serialization module.
+"""
 function serialize(io::IO, value, M::Module; kwargs...)
     if !isdefined(M, :serialize_genser)
         throw(ArgumentError("$M cannot serialize data"))
@@ -12,16 +21,26 @@ function serialize(io::IO, value, ::Type{M}; kwargs...) where M <: MIME
     serialize(io, value, Mod::Module; kwargs...)
 end
 
-@inline function serialize(value, m::MIME; kwargs...)
-    serialize(value, typeof(m); kwargs...)
+"""
+    Genser.serialize([io::IO,] value, mime::MIME; kwargs...)
+
+Serialize a value using the registered serialization module for a mime type.
+"""
+@inline function serialize(io::IO, value, m::MIME; kwargs...)
+    serialize(io, value, typeof(m); kwargs...)
 end
 
-@inline function serialize(value, m::AbstractString; kwargs...)
-    serialize(value, MIME(m); kwargs...)
+"""
+    Genser.serialize([io::IO,] value, mime::AbstractString; kwargs...)
+
+Serialize a value using the registered serialization module for a mime type provided as a string.
+"""
+@inline function serialize(io::IO, value, m::AbstractString; kwargs...)
+    serialize(io, value, MIME(m); kwargs...)
 end
 
 @inline function serialize(value, m; kwargs...)
     io = IOBuffer()
     serialize(io, value, m; kwargs...)
-    io
+    take!(io)
 end

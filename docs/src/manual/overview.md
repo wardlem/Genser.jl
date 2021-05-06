@@ -1,7 +1,7 @@
-# Manual Overview
+# Overview
 
 ```@index
 Pages = [
-    "manual/datamodel.md"
+    "datamodel.md"
 ]
 ```

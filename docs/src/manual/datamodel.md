@@ -16,20 +16,21 @@ All Genser data model types have tag as part of their type.
 These tags typically match the type of data they contain, but may also be utilized to provide additional context.
 The tag for a genser value or type can be retrieved with the `tag` function.
 
-```julia
-julia> using Genser
-
-julia> Genser.tag(GenserInt64)
-Genser.Tag(:int64)
-
-julia> Genser.tag(GenserURI)
-Genser.Tag(:uri)
+```@repl
+using Genser
+Genser.tag(GenserInt64)
+Genser.tag(GenserURI)
 ```
 
 Tags can be used for dispatching.
 
-```julia
-handle_uri(::GenserDataType{Genser.uri}) = "a URI tagged value"
+```@repl
+using Genser
+check_uri(::GenserDataType{Genser.uri}) = "It is a URI"
+check_uri(::GenserDataType) = "Not a URI"
+
+check_uri(GenserURI("http://something.com"))
+check_uri(GenserString("http://something.com"))
 ```
 
 It is possible to create custom Genser data model types with custom tags, though care must be taken to ensure the (de)serialization plugins know how to handle the value.
@@ -45,15 +46,13 @@ The base type for all Genser data model types is `GenserDataType{tag}`.
 
 The default type for nothing values is `GenserNull`.
 
-```julia
-julia> gensertypefor(Nothing)
-GenserNull
-
-julia> isequal(nothing, fromgenser(GenserUndefined()))
-true
+```@repl
+using Genser
+gensertypefor(Nothing)
+isequal(nothing, fromgenser(GenserUndefined()))
 ```
 
-The parent type for nothing values is `GenserNothingType{tag}`.
+The parent type for nothing values is `GenserNothingValue{tag}`.
 
 ## Basic types
 
@@ -71,15 +70,15 @@ The parent type for nothing values is `GenserNothingType{tag}`.
 - `GenserFloat16(::Float16)`
 - `GenserFloat32(::Float32)`
 - `GenserFloat64(::Float64)`
+- `GenserBigFloat(::BigFloat)`
+- `GenserRational(::Rational)`
 - `GenserBool(::Bool)`
 - `GenserChar(::Char)`
 
-```julia
-julia> gensertypefor(UInt16)
-GenserUInt16 (alias for GenserValue{UInt16, Genser.Tag(:uint16)})
-
-julia> gensertypefor(Char)
-GenserChar (alias for GenserValue{Char, Genser.Tag(:char)})
+```@repl
+using Genser
+gensertypefor(UInt16)
+gensertypefor(Char)
 ```
 
 The parent type for basic types is `GenserValue{V, tag}` where `V` is the type of the value held by the type.
@@ -99,12 +98,12 @@ Strings are handle much like basic types, though the tag is used to provide addi
 - `GenserString(::String)`
 - `GenserURI(::String)`
 
-```julia
-julia> gensertypefor(String)
-GenserValue{String, Genser.Tag(:str)}
+```@repl
+using Genser
+gensertypefor(String)
 ```
 
-The category type `GenserStringValue{V <: AbstractString}` may be used to dispatch on all genser string types.
+The category type `GenserStringValue{tag}` may be used to dispatch on all genser string types.
 
 The default type for all string values is `GenserString`.
 
@@ -120,9 +119,9 @@ The base type for binary values is `GenserBinaryValue{E <: Encoding}`.  This typ
 
 The default type for all `Vector{UInt8}` values is `GenserBinary`.
 
-```julia
-julia> gensertypefor(Vector{UInt8})
-GenserBinary (alias for GenserBinaryValue{Encoding{:none}})
+```@repl
+using Genser
+gensertypefor(Vector{UInt8})
 ```
 
 ## Additional value types
@@ -130,12 +129,10 @@ GenserBinary (alias for GenserBinaryValue{Encoding{:none}})
 - `GenserUUID(::Base.UUID)`
 - `GenserSymbol(::Symbol)`
 
-```julia
-julia> gensertypefor(Base.UUID)
-GenserUUID (alias for GenserValue{Base.UUID, Genser.Tag(:uuid)})
-
-julia> gensertypefor(Symbol)
-GenserSymbol (alias for GenserValue{Symbol, Genser.Tag(:symbol)})
+```@repl
+using Genser
+gensertypefor(Base.UUID)
+gensertypefor(Symbol)
 ```
 
 ## Sequence types
@@ -147,12 +144,10 @@ All Genser sequence types are one-dimensional.
 
 The value of a sequence type is an `AbstractVector`.
 
-```julia
-julia> gensertypefor(Vector{String})
-GenserSequence{GenserValue{String, Genser.Tag(:str)}}
-
-julia> gensertypefor(Matrix{UInt8})
-GenserSequence{GenserUInt8}
+```@repl
+using Genser
+gensertypefor(Vector{String})
+gensertypefor(Matrix{UInt8})
 ```
 
 ## Set types
@@ -165,12 +160,10 @@ The value of a set type is an `AbstractSet`.
 
 A set type is typically serialized in the same format as a sequence type.
 
-```julia
-julia> gensertypefor(Set{Int64})
-GenserSet{GenserInt64}
-
-julia> gensertypefor(BitSet)
-GenserSet{GenserInt64}
+```@repl
+using Genser
+gensertypefor(Set{Int64})
+gensertypefor(BitSet)
 ```
 
 ## Tuple types
@@ -183,9 +176,9 @@ A tuple type is typically serialized in the same format as a sequence type.
 
 This is the default type for all `Tuple` values.
 
-```julia
+```@repl
+using Genser
 gensertypefor(Tuple{Char,Int32})
-GenserTuple{Tuple{GenserChar, GenserInt32}}
 ```
 
 ## Dict types
@@ -196,12 +189,10 @@ A dict type is a non-fixed sized container of key-value pairs.
 
 For compatibility with (de)serializers, it is recommended that serialized dictionarys contain keys that can be converted to and from a string.
 
-```julia
-julia> gensertypefor(Dict{Symbol,String})
-GenserDict{GenserSymbol, GenserValue{String, Genser.Tag(:str)}}
-
-julia> gensertypefor(Base.ImmutableDict{Symbol,String})
-GenserDict{GenserSymbol, GenserValue{String, Genser.Tag(:str)}}
+```@repl
+using Genser
+gensertypefor(Dict{Symbol,String})
+gensertypefor(Base.ImmutableDict{Symbol,String})
 ```
 
 A dict type is the default type for all `AbstractDict` values.
@@ -217,17 +208,16 @@ Genser always stores the record as a named tuple internally.
 
 A record type is the default type for all `NamedTuple` and `struct` values.
 
-```julia
-julia> gensertypefor(@NamedTuple{name::String, age::UInt8})
-GenserRecord{NamedTuple{(:name, :age), Tuple{GenserValue{String, Genser.Tag(:str)}, GenserUInt8}}}
+```@repl
+using Genser
+gensertypefor(@NamedTuple{name::String, age::UInt8})
 
-julia> struct Person
-           name::String
-           age::UInt8
-       end
+struct Person
+    name::String
+    age::UInt8
+end
 
-julia> gensertypefor(Person)
-GenserRecord{NamedTuple{(:name, :age), Tuple{GenserValue{String, Genser.Tag(:str)}, GenserUInt8}}}
+gensertypefor(Person)
 ```
 
 ## Optional types
@@ -238,9 +228,9 @@ An optional type is a type that may or may not have a value.
 
 An optional type is the default type for all `Union` types that include `Nothing`.
 
-```julia
-julia> gensertypefor(Union{Symbol,Nothing})
-GenserOptional{GenserSymbol}
+```@repl
+using Genser
+gensertypefor(Union{Symbol,Nothing})
 ```
 
 ## Variant types
@@ -251,16 +241,16 @@ A variant is a value that can contain a value of one or more different types.
 
 A variant type is the default for all `Union` types that do not include `Nothing`.
 
-```julia
-julia> gensertypefor(Union{Int32,Char})
-GenserVariant{Union{GenserChar, GenserInt32}}
+```@repl
+using Genser
+gensertypefor(Union{Int32,Char})
 ```
 
 ## Any type
 
 The any type is a wrapper type that contains any Genser sub value.
 
-```julia
-julia> gensertypefor(Any)
-GenserAny
+```@repl
+using Genser
+gensertypefor(Any)
 ```

@@ -38,9 +38,9 @@ fromgenser(::Type{T}, v::GenserValue{T}) where T = v.value
 fromgenser(::Type{Any}, v::GenserAny) = fromgenser(v.value)
 
 # Nothing
-togenser(T::Type{<:GenserNothingType}, v) = T()
-fromgenser(::Type{>:Nothing}, v::GenserNothingType) = nothing
-fromgenser(::Type{Any}, v::GenserNothingType) = nothing
+togenser(T::Type{<:GenserNothingValue}, v) = T()
+fromgenser(::Type{>:Nothing}, v::GenserNothingValue) = nothing
+fromgenser(::Type{Any}, v::GenserNothingValue) = nothing
 
 # Integer types
 for (T, GT) = (
@@ -58,16 +58,22 @@ for (T, GT) = (
     BigInt => GenserBigInt,
     Float16 => GenserFloat16,
     Float32 => GenserFloat32,
-    Float64 => GenserFloat64)
+    Float64 => GenserFloat64,
+    BigFloat => GenserBigFloat,
+    Rational => GenserRational,
+)
 
     @eval togenser(::Type{$GT}, v::$GT) = v
     @eval togenser(::Type{$GT}, v::V) where V <: Number = $GT($T(v))
     @eval togenser(::Type{$GT}, v::V) where V <: AbstractChar = $GT($T(v))
-    @eval togenser(::Type{$GT}, v::V) where V <: AbstractString = $GT(parse($T, v))
+    if T == Rational
+        @eval togenser(::Type{$GT}, v::V) where V <: AbstractString = $GT($T(parse(Float64, v)))
+    else
+        @eval togenser(::Type{$GT}, v::V) where V <: AbstractString = $GT(parse($T, v))
+    end
 
     @eval fromgenser(T::Type{<:Number}, v::$GT) = T(v.value)
     @eval fromgenser(T::Type{Char}, v::$GT) = T(v.value)
-    # @eval fromgenser(T::Type{Any}, v::$GT) = v.value
     @eval fromgenser(T::Type{>:$T}, v::$GT) = v.value
 end
 
@@ -87,7 +93,7 @@ fromgenser(T::Type{<:Number}, v::GenserChar) = T(v.value)
 fromgenser(::Type{>:Char}, v::GenserChar) = v.value
 
 # Strings
-togenser(T::Type{<:GenserStringValue{V}}, v) where V <: AbstractString = T(string(v))
+togenser(T::Type{<:GenserStringValue}, v) = T(string(v))
 
 fromgenser(::Type{AbstractString}, v::V) where V <: GenserStringValue = v.value
 fromgenser(T::Type{<:Number}, v::V) where V <:GenserStringValue = parse(T, v.value)
@@ -160,8 +166,9 @@ togenser(::Type{GenserUUID}, v::Vector{UInt8}) = begin
 end
 togenser(::Type{GenserUUID}, v::UInt128) = GenserUUID(UUID(v))
 
-fromgenser(::Type{String}, v::GenserUUID) = string(v.value)
-fromgenser(::Type{AbstractString}, v::GenserUUID) = string(v.value)
+# fromgenser(::Type{String}, v::GenserUUID) = string(v.value)
+fromgenser(T::Type{AbstractString}, v::GenserUUID) = string(v.value)
+fromgenser(T::Type{<:AbstractString}, v::GenserUUID) = T(string(v.value))
 fromgenser(::Type{T}, v::GenserUUID) where T <: AbstractString = T(string(v.value))
 fromgenser(::Type{Vector{UInt8}}, v::GenserUUID) = [reinterpret(UInt8, [hton(v.value.value)])...]
 fromgenser(::Type{UInt128}, v::GenserUUID) = v.value.value
@@ -517,7 +524,7 @@ togenser(::Type{GenserOptional{T}}, v::Nothing) where T = GenserOptional{T}(Gens
 togenser(::Type{GenserOptional{T}}, v) where T = GenserOptional{T}(togenser(T, v))
 
 fromgenser(T::Type{>: Nothing}, v::V) where V <: GenserOptional = begin
-    if v.value isa GenserNothingType
+    if v.value isa GenserNothingValue
         nothing
     elseif typeof(T) == Union
         fromgenser(unoptionalize(T), v.value)

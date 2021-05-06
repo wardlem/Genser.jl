@@ -4,20 +4,23 @@ import Base: UUID, ==
 using Requires
 
 export
-    GenserTag, GenserDataType, GenserValue, GenserBinaryValue, GenserUndefined, GenserNull,
+    Tag, GenserDataType, GenserValue, GenserNothingValue, GenserUndefined, GenserNull,
     GenserInt8, GenserUInt8, GenserInt16, GenserUInt16, GenserInt32, GenserUInt32,
     GenserInt64, GenserUInt64, GenserInt128, GenserUInt128,
     GenserFloat16, GenserFloat32, GenserFloat64,
+    GenserRational, GenserBigFloat,
     GenserBool, GenserChar, GenserBigInt,
-    GenserNumberValue, GenserIntegerValue, GenserSignedValue, GenserUnsignedValue, GenserFloatValue,
+    GenserNumberValue, GenserRealValue,
+    GenserIntegerValue, GenserSignedValue, GenserUnsignedValue, GenserFloatValue,
     GenserStringValue, GenserString, GenserURI,
-    GenserBinary, GenserUUID, GenserSymbol,
+    GenserBinaryValue, GenserBinary, GenserUUID, GenserSymbol,
     GenserSequence, GenserSet, GenserTuple, GenserDict, GenserRecord,
     GenserOptional, GenserVariant, GenserAny,
     gensertypefor, togenser, fromgenser, convert_to_type,
     serialize, deserialize,
     genser_type_for_mime, genser_converter_for_encoding,
     TypeID, Encoding,
+    tag, encoding,
     @fieldencoding, @fieldtype
 
     include("encoding.jl")

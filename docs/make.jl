@@ -22,7 +22,8 @@ makedocs(;
             "manual/datamodel.md",
         ],
         "Library" => [
-            "lib/public.md",
+            "lib/primary.md",
+            "lib/datamodel.md",
         ]
     ],
 )

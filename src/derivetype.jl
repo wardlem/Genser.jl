@@ -1,5 +1,10 @@
 function fieldtype(t, f) nothing end
 
+"""
+    Genser.gensertypefor(T::Type) :: Type{<: GenserDataType}
+
+Get the Genser data model type for a Julia type.
+"""
 gensertypefor(T::Type{<:GenserDataType}; kwargs...) = T
 gensertypefor(::Type{Any}; kwargs...) = GenserAny
 gensertypefor(::Type{Nothing}; kwargs...) = GenserNull
@@ -19,8 +24,12 @@ gensertypefor(::Type{BigInt}; kwargs...) = GenserBigInt
 gensertypefor(::Type{Float16}; kwargs...) = GenserFloat16
 gensertypefor(::Type{Float32}; kwargs...) = GenserFloat32
 gensertypefor(::Type{Float64}; kwargs...) = GenserFloat64
+gensertypefor(::Type{BigFloat}; kwargs...) = GenserBigFloat
+gensertypefor(::Type{Rational}; kwargs...) where V = GenserRational
+gensertypefor(::Type{Rational{V}}; kwargs...) where V = GenserRational
+
 gensertypefor(::Type{String}; kwargs...) = GenserString
-gensertypefor(T::Type{<: AbstractString}; kwargs...) = GenserStringValue{T, str}
+gensertypefor(T::Type{<: AbstractString}; kwargs...) = GenserString
 gensertypefor(::Type{Vector{UInt8}}; kwargs...) = begin
     if haskey(kwargs, :containertype) && haskey(kwargs, :fieldkey)
         containertype = kwargs[:containertype]
